@@ -1,4 +1,5 @@
-import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { IsInt, IsNotEmpty, Min, Max, validateOrReject } from 'class-validator';
 import { Estudiante } from './estudianteModel';
 import { Curso } from './cursoModel';
 
@@ -6,9 +7,11 @@ import { Curso } from './cursoModel';
 export class Inscripcion {
 
     @PrimaryColumn()
+    @IsInt({ message: 'Debe ser un número entero' })
     estudiante_id: number;
 
-    @PrimaryColumn() 
+    @PrimaryColumn()
+    @IsInt({ message: 'Debe ser un número entero' })
     curso_id: number;
 
     @ManyToOne(() => Curso, curso => curso.inscripciones)
@@ -20,6 +23,10 @@ export class Inscripcion {
     estudiante: Estudiante;
 
     @Column()
+    @IsNotEmpty({ message: 'La nota no puede estar vacía' })
+    @IsInt({ message: 'Debe ser un número entero' })
+    @Min(0, { message: 'La nota debe ser al menos 0' })
+    @Max(10, { message: 'La nota no puede ser mayor a 10' })
     nota: number;
 
     @CreateDateColumn()
@@ -27,5 +34,4 @@ export class Inscripcion {
 
     @UpdateDateColumn()
     updatedAt: Date;
-
 }

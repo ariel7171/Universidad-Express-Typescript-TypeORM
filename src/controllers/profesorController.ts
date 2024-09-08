@@ -2,6 +2,8 @@ import { DeleteResult, Repository, UpdateResult } from "typeorm";
 import AppdataSource from "../database/database";
 import { Profesor } from "../models/profesorModel";
 import { Request, Response } from "express";
+import { manejarErroresDeValidacion } from "../utils/errorUtil";
+import { validateOrReject } from "class-validator";
 
 const profesorRepository: Repository<Profesor> = AppdataSource.getRepository(Profesor);
 
@@ -38,14 +40,22 @@ export const obtenerProfesorPorId = async (req: Request, res: Response): Promise
 
 export const guardarProfesor = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { dni, nombre, apellido, email } = req.body as Profesor;
+    const { dni, nombre, apellido, email, profesion, telefono } = req.body;
 
-    const instanciaProfesor: Profesor = profesorRepository.create({ dni, nombre, apellido, email });
+    const profesorBody = profesorRepository.create({ dni, nombre, apellido, email, profesion, telefono });
 
-    const profesor: Profesor = await profesorRepository.save(instanciaProfesor);
+    try {
+      await validateOrReject(profesorBody);
+    } catch (validationErrors: any) {
+      manejarErroresDeValidacion(validationErrors, res, 'profesor');
+      return;
+    }
+
+    const profesor: Profesor = await profesorRepository.save(profesorBody);
 
     res.status(201).json(profesor);
   } catch (error: any) {
+
     res.status(500).json({ message: "Error al crear el profesor", error: error.message });
   }
 }
@@ -53,7 +63,17 @@ export const guardarProfesor = async (req: Request, res: Response): Promise<void
 export const actualizarProfesor = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { dni, nombre, apellido, email, profesion, telefono } = req.body as Profesor;
+
+    const { dni, nombre, apellido, email, profesion, telefono } = req.body;
+
+    const profesorBody = profesorRepository.create({ dni, nombre, apellido, email, profesion, telefono });
+
+    try {
+      await validateOrReject(profesorBody);
+    } catch (validationErrors: any) {
+      manejarErroresDeValidacion(validationErrors, res, 'profesor');
+      return;
+    }
 
     const profesor: Profesor | null = await profesorRepository.findOneBy({ id: Number(id) });
     if (!profesor) {
@@ -61,7 +81,7 @@ export const actualizarProfesor = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const result: UpdateResult = await profesorRepository.update({ id: Number(id) }, { dni, nombre, apellido, email, profesion, telefono });
+    const result: UpdateResult = await profesorRepository.update({ id: Number(id) }, profesorBody);
     if (result.affected === 0) {
       res.status(404).json({ message: "Profesor no encontrado" });
       return;
@@ -69,6 +89,7 @@ export const actualizarProfesor = async (req: Request, res: Response): Promise<v
 
     res.status(200).json({ message: "Profesor Actualizado" });
   } catch (error: any) {
+
     res.status(500).json({ message: "Error al actualizar el Profesor", error: error.message });
   }
 }

@@ -2,6 +2,8 @@ import { DeleteResult, Repository, UpdateResult } from "typeorm";
 import AppdataSource from "../database/database";
 import { Estudiante } from "../models/estudianteModel";
 import { Request, Response } from "express";
+import { manejarErroresDeValidacion } from "../utils/errorUtil";
+import { validateOrReject } from "class-validator";
 
 const estudianteRepository: Repository<Estudiante> = AppdataSource.getRepository(Estudiante);
 
@@ -38,14 +40,22 @@ export const obtenerEstudiantePorId = async (req: Request, res: Response): Promi
 
 export const guardarEstudiante = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { dni, nombre, apellido, email } = req.body as Estudiante;
+    const { dni, nombre, apellido, email } = req.body;
 
-    const instanciaEstudiante: Estudiante = estudianteRepository.create({ dni, nombre, apellido, email });
+    const estudianteBody = estudianteRepository.create({ dni, nombre, apellido, email });
 
-    const estudiante: Estudiante = await estudianteRepository.save(instanciaEstudiante);
+    try {
+      await validateOrReject(estudianteBody);
+    } catch (validationErrors: any) {
+      manejarErroresDeValidacion(validationErrors, res, "estudiante");
+      return;
+    }
+
+    const estudiante: Estudiante = await estudianteRepository.save(estudianteBody);
 
     res.status(201).json(estudiante);
   } catch (error: any) {
+
     res.status(500).json({ message: "Error al crear el estudiante", error: error.message });
   }
 }
@@ -53,7 +63,16 @@ export const guardarEstudiante = async (req: Request, res: Response): Promise<vo
 export const actualizarEstudiante = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { dni, nombre, apellido, email } = req.body as Estudiante;
+    const { dni, nombre, apellido, email } = req.body;
+
+    const estudianteBody = estudianteRepository.create({ dni, nombre, apellido, email });
+
+    try {
+      await validateOrReject(estudianteBody);
+    } catch (validationErrors: any) {
+      manejarErroresDeValidacion(validationErrors, res, "estudiante");
+      return;
+    }
 
     const estudiante: Estudiante | null = await estudianteRepository.findOneBy({ id: Number(id) });
     if (!estudiante) {
@@ -61,7 +80,7 @@ export const actualizarEstudiante = async (req: Request, res: Response): Promise
       return;
     }
 
-    const result: UpdateResult = await estudianteRepository.update({ id: Number(id) }, { dni, nombre, apellido, email });
+    const result: UpdateResult = await estudianteRepository.update({ id: Number(id) }, estudianteBody);
     if (result.affected === 0) {
       res.status(404).json({ message: "No se pudo actualizar el estudiante" });
       return;
@@ -69,6 +88,7 @@ export const actualizarEstudiante = async (req: Request, res: Response): Promise
 
     res.status(200).json({ message: "Estudiante Actualizado" });
   } catch (error: any) {
+
     res.status(500).json({ message: "Error al actualizar el estudiante", error: error.message });
   }
 }
