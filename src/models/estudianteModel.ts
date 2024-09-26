@@ -8,11 +8,6 @@ export class Estudiante {
     id: number | undefined;
 
     @Column()
-    @IsNotEmpty({ message: 'El DNI no puede estar vacío' })
-    @Matches(/^\d{7,8}$/, { message: 'Debe tener entre 7 y 8 dígitos numéricos' })
-    dni: string;
-
-    @Column()
     @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
     @Matches(/^[A-Za-z\s]+$/, { message: 'Debe ser una cadena de texto con solo letras y espacios' })
     nombre: string;
@@ -21,6 +16,11 @@ export class Estudiante {
     @IsNotEmpty({ message: 'El apellido no puede estar vacío' })
     @Matches(/^[A-Za-z\s]+$/, { message: 'Debe ser una cadena de texto con solo letras y espacios' })
     apellido: string;
+
+    @Column()
+    @IsNotEmpty({ message: 'El DNI no puede estar vacío' })
+    @Matches(/^\d{7,8}$/, { message: 'Debe tener entre 7 y 8 dígitos numéricos' })
+    dni: string;
 
     @Column()
     @IsEmail({}, { message: 'No tiene un formato válido' })

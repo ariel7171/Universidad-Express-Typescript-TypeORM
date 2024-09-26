@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { IsInt, IsNotEmpty, IsString, Length, validateOrReject } from 'class-validator';
 import { Inscripcion } from './inscripcionModel';
 import { Profesor } from './profesorModel';
+import { Estudiante } from './estudianteModel';
 
 @Entity('cursos')
 export class Curso {

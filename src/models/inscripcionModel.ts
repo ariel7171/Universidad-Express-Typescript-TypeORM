@@ -8,7 +8,7 @@ export class Inscripcion {
 
     @PrimaryColumn()
     @IsInt({ message: 'Debe ser un número entero' })
-    estudiante_id: number;
+    estudiante_id: number | undefined;
 
     @PrimaryColumn()
     @IsInt({ message: 'Debe ser un número entero' })

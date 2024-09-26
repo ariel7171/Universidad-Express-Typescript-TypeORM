@@ -44,9 +44,12 @@ export const obtenerCursoPorId = async (req: Request, res: Response): Promise<vo
 
 export const guardarCurso = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { nombre, descripcion, profesor_id } = req.body;
+    let { nombre, descripcion, profesor_id } = req.body;
+
+    profesor_id = Number(profesor_id);
 
     const cursoBody = cursoRepository.create({ nombre, descripcion, profesor_id });
+
 
     try {
       await validateOrReject(cursoBody);
@@ -75,7 +78,9 @@ export const actualizarCurso = async (req: Request, res: Response): Promise<void
   try {
 
     const { id } = req.params;
-    const { nombre, descripcion, profesor_id } = req.body;
+    let { nombre, descripcion, profesor_id } = req.body;
+
+    profesor_id = Number(profesor_id);
 
     const cursoBody = cursoRepository.create({ nombre, descripcion, profesor_id });
 

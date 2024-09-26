@@ -62,14 +62,24 @@ export const obtenerInscripcionesPorEstudiante = async (req: Request, res: Respo
 
 export const guardarInscripcion = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { curso_id, estudiante_id, nota } = req.body;
+    const { curso_id, estudiante_id, nota} = req.body;
 
-    const inscripcionBody = inscripcionRepository.create({ curso_id, estudiante_id, nota });
+    console.log(req.body);
+
+    const curso_idNumber: number = Number(curso_id);
+    const estudiante_idNumber: number = Number(estudiante_id);
+    const notaNumber: number = Number(nota);
+
+    const bodyParseado = { curso_id: curso_idNumber, estudiante_id: estudiante_idNumber, nota: notaNumber };
+
+    const inscripcionBody = inscripcionRepository.create(bodyParseado);
+
+    console.log(inscripcionBody);
 
     try {
       await validateOrReject(inscripcionBody);
     } catch (validationErrors: any) {
-      manejarErroresDeValidacion(validationErrors, res, 'inscripcion');
+        manejarErroresDeValidacion(validationErrors, res, 'inscripcion');
       return;
     }
 
@@ -102,7 +112,13 @@ export const actualizarInscripcion = async (req: Request, res: Response): Promis
   try {
     const { curso_id, estudiante_id, nota } = req.body;
 
-    const inscripcionBody = inscripcionRepository.create({ curso_id, estudiante_id, nota });
+    const curso_idNumber: number = Number(curso_id);
+    const estudiante_idNumber: number = Number(estudiante_id);
+    const notaNumber: number = Number(nota);
+
+    const bodyParseado = { curso_id: curso_idNumber, estudiante_id: estudiante_idNumber, nota: notaNumber };
+
+    const inscripcionBody = inscripcionRepository.create(bodyParseado);
 
     try {
       await validateOrReject(inscripcionBody);
@@ -152,20 +168,16 @@ export const eliminarInscripcion = async (req: Request, res: Response) => {
 
   try {
 
-    const { curso_id, estudiante_id } = req.body;
+    const {estudiante_id,  curso_id} = req.params;
 
-    const inscripcionBody = inscripcionRepository.create({ curso_id, estudiante_id });
-
-    await validateOrReject(inscripcionBody);
-
-    const inscripcion: Inscripcion | null = await queryRunner.manager.findOne(Inscripcion, { where: { curso_id: inscripcionBody.curso_id, estudiante_id: inscripcionBody.estudiante_id } });
+    const inscripcion: Inscripcion | null = await queryRunner.manager.findOne(Inscripcion, { where: { curso_id: Number(curso_id), estudiante_id: Number(estudiante_id) } });
 
     if (!inscripcion) {
       await queryRunner.rollbackTransaction();
       return res.status(404).json({ message: 'Inscripcion no encontrada' });
     }
 
-    const result: DeleteResult = await queryRunner.manager.delete(Inscripcion, { curso_id: inscripcionBody.curso_id, estudiante_id: inscripcionBody.estudiante_id });
+    const result: DeleteResult = await queryRunner.manager.delete(Inscripcion, { curso_id: Number(curso_id), estudiante_id: Number(estudiante_id) });
 
     if (result.affected === 0) {
       await queryRunner.rollbackTransaction();
